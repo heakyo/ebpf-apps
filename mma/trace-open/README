@@ -1,0 +1,4 @@
+# Ref:
+# 	https://github.com/iovisor/bcc/blob/master/docs/reference_guide.md#1-perf_buffer_poll
+
+sudo ./trace_open.py
