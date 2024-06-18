@@ -1,1 +1,14 @@
-sudo ./hello.py
+sudo ./hello_world.py
+
+sudo bpftool prog list
+------------------------------------------
+835: kprobe  name hello_world  tag 38dd440716c4900f  gpl
+        loaded_at 2024-06-18T19:12:47+0800  uid 0
+	        xlated 104B  jited 74B  memlock 4096B
+		        btf_id 257
+
+sudo bpftool prog dump xlated id 835
+sudo bpftool prog dump jited id 835
+
+# -ebpf means only tracking the bpf syscall
+sudo strace -o hello.log -v -f -ebpf ./hello.py
