@@ -1,4 +1,5 @@
 sudo ./hello_world.py
+sudo cat /sys/kernel/debug/tracing/trace_pipe
 
 sudo bpftool prog list
 ------------------------------------------
