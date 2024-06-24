@@ -13,3 +13,6 @@ sudo bpftool prog dump jited id 835
 
 # -ebpf means only tracking the bpf syscall
 sudo strace -o hello.log -v -f -ebpf ./hello.py
+
+# Check if do_sys_openat2 function exists
+sudo bpftrace -l k:do_sys_openat2
