@@ -1,4 +1,7 @@
 # Ref:
 # 	https://github.com/iovisor/bcc/blob/master/docs/reference_guide.md#1-perf_buffer_poll
+# The code in trace_open.c file will be running in the kernel space
+# The code in trace_open.py file will be running in the user space
+#
 
 sudo ./trace_open.py

@@ -8,8 +8,11 @@ struct data_t {
 	char fname[NAME_MAX];
 };
 
+// Creates a BPF table named myevents
 BPF_PERF_OUTPUT(myevents);
 
+// This code is running in the kernel
+// The parameters dfd, filename and how are from do_sys_openat2 funtion
 int hello_world(struct pt_regs *ctx, int dfd, const char __user * filename,
 		struct open_how *how)
 {

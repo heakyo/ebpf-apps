@@ -24,7 +24,6 @@ def main():
     b.attach_kprobe(event="do_sys_openat2", fn_name="hello_world")
 
     print("%-16s %-6s %-16s" % ("COMM", "PID", "FILE"))
-
     bpf_perf_buffer(b)
 
 if __name__ == "__main__":
