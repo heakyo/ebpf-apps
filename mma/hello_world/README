@@ -1,6 +1,14 @@
+# Unofficall eBPF SPEC
+# 	https://github.com/iovisor/bpf-docs/blob/master/eBPF.md
+#
+# bcc Reference Guide (BCC helpers)
+# 	https://github.com/iovisor/bcc/blob/master/docs/reference_guide.md
+#
+
 sudo ./hello_world.py
 sudo cat /sys/kernel/debug/tracing/trace_pipe
 
+===============================================================================
 sudo bpftool prog list
 ------------------------------------------
 835: kprobe  name hello_world  tag 38dd440716c4900f  gpl
@@ -8,11 +16,86 @@ sudo bpftool prog list
 	        xlated 104B  jited 74B  memlock 4096B
 		        btf_id 257
 
+===============================================================================
 sudo bpftool prog dump xlated id 835
+------------------------------------------
+int hello_world(void * ctx):
+; int hello_world(void *ctx)
+0: (b7) r1 = 33
+; ({
+char _fmt[] = "Hello, World!"; bpf_trace_printk_(_fmt, sizeof(_fmt)); });
+1: (6b) *(u16 *)(r10 -4) = r1
+2: (b7) r1 = 1684828783
+3: (63) *(u32 *)(r10 -8) = r1
+4: (18) r1 = 0x57202c6f6c6c6548
+6: (7b) *(u64 *)(r10 -16) = r1
+7: (bf) r1 = r10
+;
+8: (07) r1 += -16
+; ({
+char _fmt[] = "Hello, World!"; bpf_trace_printk_(_fmt, sizeof(_fmt)); });
+9: (b7) r2 = 14
+10: (85) call bpf_trace_printk#-60544
+; return 0;
+11: (b7) r0 = 0
+12: (95) exit
+
+===============================================================================
 sudo bpftool prog dump jited id 835
+------------------------------------------
+Error: No libbfd support
+[marvin@opensuse15 hello_world (ebpf-study)]$ sudo bpftool version -p
+{
 
+	"version": "7.0.0",
+	"libbpf_version": "1.0",
+	"features": {
+		"libbfd": false, <<<<<<<<<
+		"libbpf_strict": true,
+		"skeletons": true
+	}
+}
+
+===============================================================================
 # -ebpf means only tracking the bpf syscall
+# The sturct bpf_insn
+# 	https://elixir.bootlin.com/linux/v5.4/source/include/uapi/linux/bpf.h#L65
+# BPF syscall
+# 	https://elixir.bootlin.com/linux/v5.4/source/kernel/bpf/syscall.c#L2837
 sudo strace -o hello.log -v -f -ebpf ./hello.py
+------------------------------------------
+bpf(BPF_PROG_LOAD, attr, 128)=4
+# uapi/linux/bpf.h --- union bpf_attr
+#  --- struct { /* anonymous struct used by BPF_PROG_LOAD command */ }
+attr = {
+	prog_type=BPF_PROG_TYPE_KPROBE,
+	insn_cnt=13,
+	insns=[
+		{code=BPF_ALU64|BPF_K|BPF_MOV, dst_reg=BPF_REG_1, src_reg=BPF_REG_0, off=0, imm=0x21},
+		{code=BPF_STX|BPF_H|BPF_MEM, dst_r    eg=BPF_REG_10, src_reg=BPF_REG_1, off=-4, imm=0},
+		........
+		{code=BPF_JMP|BPF_K|BPF_EXIT, dst_reg=BPF_REG_0, src_reg=BPF_REG_0, off=0, imm    =0}
+	],
+	prog_name="hello_world",
+	.........
+}
 
+===============================================================================
+# 1. Load bfp program and get the FD of the bpf program
+# 	bpf(BPF_PROG_LOAD, {prog_type=BPF_PROG_TYPE_KPROBE, ...},) = 4
+#
+# 2. Check the value of kprobe
+# 	openat(AT_FDCWD, "/sys/bus/event_source/devices/kprobe/type", O_RDONLY) = 5
+# 	read(5, "6\n", 4096) = 2
+# 	close(5);
+#
+# 3. Create perf event. We need perf type here
+# 	perf_event_open() = 5
+#
+# 4. Bind BPF to the event kprobe
+# 	ioctl(5, PERF_EVENT_IOC_SET_BPF, 4) = 0
+sudo strace -o hello_all.log -v -f ./hello.py
+
+===============================================================================
 # Check if do_sys_openat2 function exists
 sudo bpftrace -l k:do_sys_openat2
